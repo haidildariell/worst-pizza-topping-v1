@@ -1,21 +1,45 @@
-#!/usr/bin/env python3
-"""The Worst Pizza Topping - entry program.
-
-Writes one funny line pitching a terrible pizza topping to /output/entry.txt.
-Single line, under 200 characters, UTF-8, no trailing newline beyond the line.
-"""
+"""Worst Pizza Topping entry: writes the one-liner to /output/entry.txt."""
 
 import os
+import sys
 
-LINE = "Our pizza comes topped with wet cardboard \u2014 it folds like a love letter, and the box it arrived in is technically the second topping."
+OUTPUT_PATH = "/output/entry.txt"
+MIN_LENGTH = 1
+MAX_LENGTH = 200
+
+
+def build_entry():
+    """Assemble the entry line from its two beats: the topping, then the box."""
+    topping = "Our pizza comes topped with wet cardboard"
+    twist = "it folds like a love letter, and the box it arrived in is technically the second topping."
+    return topping + " — " + twist
+
+
+def validate_entry(text):
+    """The entry must be a single line of 1-200 characters, UTF-8 safe."""
+    if not isinstance(text, str):
+        raise TypeError("entry must be a string")
+    if not (MIN_LENGTH <= len(text) <= MAX_LENGTH):
+        raise ValueError("entry must be %d-%d characters, got %d" % (MIN_LENGTH, MAX_LENGTH, len(text)))
+    if "\n" in text or "\r" in text:
+        raise ValueError("entry must be a single line")
+    return text
+
+
+def write_entry(path, text):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as handle:
+        handle.write(text)
 
 
 def main():
-    out_dir = "/output"
-    os.makedirs(out_dir, exist_ok=True)
-    with open(os.path.join(out_dir, "entry.txt"), "w", encoding="utf-8") as f:
-        f.write(LINE)
+    entry = validate_entry(build_entry())
+    write_entry(OUTPUT_PATH, entry)
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except (TypeError, ValueError) as error:
+        print("invalid entry: %s" % error, file=sys.stderr)
+        sys.exit(1)
